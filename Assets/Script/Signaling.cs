@@ -1,56 +1,60 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Signaling : MonoBehaviour
 {
-    [SerializeField] private Rogue _rogue;
+    [SerializeField] private Door _doorInside;
+    [SerializeField] private Door _doorOutside;
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _minVolume=0f;
     [SerializeField] private float _maxVolume=1f;
     [SerializeField] private float _step=0.2f;
 
     private WaitForSeconds _waitForSeconds;
-    private bool _isTriggered;
+    private Coroutine _volumeCoroutine;
 
     private void Awake()
     {
-        int _delay = 5;
-        _waitForSeconds = new WaitForSeconds(_delay);
-        _isTriggered = false;
+        int delay = 1;
+        _waitForSeconds = new WaitForSeconds(delay);
         _audioSource.volume=_minVolume;
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnEnable()
     {
-        if (collision==_rogue.GetComponent<Collider2D>() && _isTriggered==false)
-        {
-            _audioSource.Play();
-            StartCoroutine(Robbery());
-            _isTriggered=true;
-        }
+        _doorInside.RogeInHouse+=WentHouse;
+        _doorOutside.RogeInHouse+=LeftHouse;
     }
 
-    private IEnumerator VolumeChange(float targetVolume)
+    private void OnDisable()
+    {
+        _doorInside.RogeInHouse-=WentHouse;
+        _doorOutside.RogeInHouse-=LeftHouse;
+    }
+
+    private void WentHouse()
+    {
+        _audioSource.Play();
+        _volumeCoroutine=StartCoroutine(TransitionVolume(_maxVolume));
+    }
+
+    private void LeftHouse()
+    {
+        if (_volumeCoroutine!=null)
+            StopCoroutine(_volumeCoroutine);
+
+        _volumeCoroutine=StartCoroutine(TransitionVolume(_minVolume));
+    }
+
+    private IEnumerator TransitionVolume(float targetVolume)
     {
         while (_audioSource.volume != targetVolume)
         {
-            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _step * Time.deltaTime);
-            yield return null;
+            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _step);
+            yield return _waitForSeconds;
         }
-    }
 
-    private IEnumerator Robbery()
-    {
-        _rogue.gameObject.SetActive(false);
-
-        yield return StartCoroutine(VolumeChange(_maxVolume));
-        _rogue.gameObject.SetActive(true);
-
-        yield return StartCoroutine(VolumeChange(_minVolume));
-        
-        _audioSource.Stop();
+        if (_audioSource.volume==_minVolume)
+            _audioSource.Stop();
     }
 }
