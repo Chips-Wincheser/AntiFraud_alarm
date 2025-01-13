@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class Signaling : MonoBehaviour
 {
-    [SerializeField] private Door _doorInside;
-    [SerializeField] private Door _doorOutside;
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _minVolume=0f;
     [SerializeField] private float _maxVolume=1f;
@@ -20,25 +18,13 @@ public class Signaling : MonoBehaviour
         _audioSource.volume=_minVolume;
     }
 
-    private void OnEnable()
-    {
-        _doorInside.RogeInHouse+=WentHouse;
-        _doorOutside.RogeInHouse+=LeftHouse;
-    }
-
-    private void OnDisable()
-    {
-        _doorInside.RogeInHouse-=WentHouse;
-        _doorOutside.RogeInHouse-=LeftHouse;
-    }
-
-    private void WentHouse()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         _audioSource.Play();
         _volumeCoroutine=StartCoroutine(TransitionVolume(_maxVolume));
     }
 
-    private void LeftHouse()
+    private void OnTriggerExit2D(Collider2D collision)
     {
         if (_volumeCoroutine!=null)
             StopCoroutine(_volumeCoroutine);
@@ -53,7 +39,7 @@ public class Signaling : MonoBehaviour
             _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _step);
             yield return _waitForSeconds;
         }
-
+        
         if (_audioSource.volume==_minVolume)
             _audioSource.Stop();
     }
