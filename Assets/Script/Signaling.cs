@@ -21,7 +21,7 @@ public class Signaling : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         _audioSource.Play();
-        _volumeCoroutine=StartCoroutine(TransitionVolume(_maxVolume));
+        _volumeCoroutine=StartCoroutine(ChangeVolume(_maxVolume));
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -29,10 +29,10 @@ public class Signaling : MonoBehaviour
         if (_volumeCoroutine!=null)
             StopCoroutine(_volumeCoroutine);
 
-        _volumeCoroutine=StartCoroutine(TransitionVolume(_minVolume));
+        _volumeCoroutine=StartCoroutine(ChangeVolume(_minVolume));
     }
 
-    private IEnumerator TransitionVolume(float targetVolume)
+    private IEnumerator ChangeVolume(float targetVolume)
     {
         while (_audioSource.volume != targetVolume)
         {

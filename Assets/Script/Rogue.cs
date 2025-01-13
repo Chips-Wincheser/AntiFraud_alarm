@@ -6,13 +6,13 @@ public class Rogue : MonoBehaviour
 
     private Vector2 _direction;
 
-    private void Update()
-    {
-        transform.Translate(_direction*_speed*Time.deltaTime,Space.World);
-    }
-
     private void Start()
     {
         _direction = transform.right.normalized;
+    }
+
+    private void Update()
+    {
+        transform.Translate(_direction*_speed*Time.deltaTime,Space.World);
     }
 }
